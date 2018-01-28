@@ -8,6 +8,7 @@ final Files -> poi_id.py and tester.py
 
 Final classifier is -> my_classifier.pkl
 
+Write Up of questions and explanations -> EnronDatasetAnalysis.pdf
 Final Algo Used -> AdaBoost
 
 Precision -> 0.3325

@@ -1,3 +1,4 @@
+from __future__ import print_function
 '''POI Script to generate create and dump classifier
 '''
 import numpy as np
@@ -58,12 +59,13 @@ def feature_selection(df):
      'total_payments',
      'total_stock_value',
      'persons']
-
+     # since we have read from pkl to a dataframe the NaNs have come as Strings, replacing them with numpy NaNs fo easy identification
     df.replace(to_replace='NaN',value=np.nan, inplace=True )
 
     nans = []
+    #Collecting list of features
     features = df.axes[1].tolist()
-
+    #if a feature has more than 75 NaNs, it wont make much impact on final model performance, hence collecting and dropping those
     for i,k in enumerate(df.isnull().sum()):
         if k > 75:
             nans.append(features[i])
@@ -71,23 +73,28 @@ def feature_selection(df):
     for c, s in df.iteritems():
         if(c in nans):
             df.drop(c, axis=1, inplace=True)
-
+    #email address and person are primarily identifier features which won't be useful in model building and classidication and might cause issue as they are string values
     df.drop('email_address', axis=1, inplace=True)
     df.drop('person', axis=1, inplace=True)
     return df
 
 
 def feature_creation(df):
-
+    #creaating 3 set of new features
     df['eso/tsv'] = df['exercised_stock_options'] / df['total_stock_value']
     df['from_poi/to_msg'] = df['from_poi_to_this_person']/df['to_messages']
     df['to_poi/from_msg'] = df['from_this_person_to_poi']/df['from_messages']
+    #droppping the features used for above feature creation
     to_drop = ['exercised_stock_options', 'total_stock_value', 'from_messages', 'from_poi_to_this_person','from_this_person_to_poi','to_messages']
     df.drop(to_drop, axis=1, inplace=True)
     return df
 
 
-
+def score_classifier(clf,features,labels):
+    score = cross_validation.cross_val_score(clf, features, labels)
+    predicted = cross_val_predict(clf, features,labels, cv=10)
+    precision = metrics.precision_score(labels, predicted)
+    return score,precision
 def main():
     # reading and converting the pkl to DataFrame
     with open ('final_project_dataset.pkl','rb') as f:
@@ -99,7 +106,11 @@ def main():
     df = remove_outlier(df)
     #Step II Select the features to be used
     df = feature_selection(df)
+    # Let's have a benchmark for before feature creation using random forest
+
+
     # Step III Feature Creation
+
     df = feature_creation(df)
     model_labels = df['poi'].copy(deep=True).astype(int).as_matrix()
     model_features = (df.drop('poi', axis=1)).fillna(0).copy(deep=True).as_matrix()
@@ -107,32 +118,48 @@ def main():
     # Step IV trying a varity of classifier
     #RandomForestClassifier
     clf_rfc = RandomForestClassifier(n_estimators=10,)
-    scored_rfc = cross_validation.cross_val_score(clf_rfc, model_features, model_labels)
-    predicted_rfc = cross_val_predict(clf_rfc, model_features,model_labels, cv=10)
-    precision_score_rfc = metrics.precision_score(model_labels, predicted_rfc)
+    scored_rfc,precision_rfc = score_classifier(clf_rfc,model_features,model_labels)
+    print('Random Forest Classifier')
+    print('Scores')
+    print(scored_rfc)
+    print('Precision')
+    print(precision_rfc)
+
     #GaussianNaiveBayes
     clf_gnb = GaussianNB()
-    scored_gnb = cross_validation.cross_val_score(clf_gnb, model_features, model_labels)
-    predicted_gnb = cross_val_predict(clf_gnb, model_features,model_labels, cv=10)
-    precision_score_gnb = metrics.precision_score(model_labels, predicted_gnb)
+    scored_gnb,precision_gnb = score_classifier(clf_gnb,model_features,model_labels)
+    print('GaussianNaiveBayes Classifier')
+    print('Scores')
+    print(scored_gnb)
+    print('Precision')
+    print(precision_gnb)
     #SVC
     clf_svc = SVC()
-    scored_svc = cross_validation.cross_val_score(clf_svc, model_features, model_labels)
-    predicted_svc = cross_val_predict(clf_svc, model_features,model_labels, cv=10)
-    precision_score_svc = metrics.precision_score(model_labels, predicted_svc)
+    scored_svc,precision_svc = score_classifier(clf_svc,model_features,model_labels)
+    print('SVM Classifier')
+    print('Scores')
+    print(scored_svc)
+    print('Precision')
+    print(precision_svc)
     #AdaBoost
     clf_abc = AdaBoostClassifier(algorithm='SAMME.R', base_estimator=None,learning_rate=1.0, n_estimators=50, random_state=None)
-    scored_abc = cross_validation.cross_val_score(clf_abc, model_features, model_labels)
-    predicted_abc = cross_val_predict(clf_abc, model_features,model_labels, cv=10)
-    precision_score_abc = metrics.precision_score(model_labels, predicted_abc)
+    scored_abc,precision_abc = score_classifier(clf_abc,model_features,model_labels)
+    print('AdaBoost Classifier')
+    print('Scores')
+    print(scored_abc)
+    print('Precision')
+    print(precision_abc)
     #Bagging
     clf_bag = BaggingClassifier(base_estimator=None, bootstrap=True,
          bootstrap_features=False, max_features=1.0, max_samples=1.0,
          n_estimators=10, n_jobs=1, oob_score=False, random_state=None,
          verbose=0, warm_start=False)
-    scored_bag = cross_validation.cross_val_score(clf_bag, model_features, model_labels)
-    predicted_bag = cross_val_predict(clf_bag, model_features,model_labels, cv=10)
-    precision_score_bag = metrics.precision_score(model_labels, predicted_bag)
+    scored_bag,precision_bag = score_classifier(clf_bag,model_features,model_labels)
+    print('AdaBoost Classifier')
+    print('Scores')
+    print(scored_bag)
+    print('Precision')
+    print(precision_bag)
 
 
     # Step V Paramter Tuning.
