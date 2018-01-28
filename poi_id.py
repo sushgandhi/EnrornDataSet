@@ -122,8 +122,6 @@ def main():
     print('Random Forest Classifier')
     print('Scores')
     print(scored_rfc)
-    print('Precision')
-    print(precision_rfc)
 
     #GaussianNaiveBayes
     clf_gnb = GaussianNB()
@@ -131,24 +129,18 @@ def main():
     print('GaussianNaiveBayes Classifier')
     print('Scores')
     print(scored_gnb)
-    print('Precision')
-    print(precision_gnb)
     #SVC
     clf_svc = SVC()
     scored_svc,precision_svc = score_classifier(clf_svc,model_features,model_labels)
     print('SVM Classifier')
     print('Scores')
     print(scored_svc)
-    print('Precision')
-    print(precision_svc)
     #AdaBoost
     clf_abc = AdaBoostClassifier(algorithm='SAMME.R', base_estimator=None,learning_rate=1.0, n_estimators=50, random_state=None)
     scored_abc,precision_abc = score_classifier(clf_abc,model_features,model_labels)
     print('AdaBoost Classifier')
     print('Scores')
     print(scored_abc)
-    print('Precision')
-    print(precision_abc)
     #Bagging
     clf_bag = BaggingClassifier(base_estimator=None, bootstrap=True,
          bootstrap_features=False, max_features=1.0, max_samples=1.0,
@@ -158,8 +150,6 @@ def main():
     print('AdaBoost Classifier')
     print('Scores')
     print(scored_bag)
-    print('Precision')
-    print(precision_bag)
 
 
     # Step V Paramter Tuning.
